@@ -6,6 +6,7 @@ on:
 jobs:
   reset:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -14,8 +15,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run reset scheduler
+      - name: Run reset script
         run: npm run reset:scheduler
+
+      - name: Commit reset files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "📅 Scheduler reset"
+          file_pattern: |
+            pending.json
+            .github/workflows/execute-job.yml
