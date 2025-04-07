@@ -2,7 +2,7 @@ name: Execute Scheduled Task
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Placeholder, will be replaced dynamically
+    - cron: '54 15 * * *'
     
 permissions:
   contents: write
