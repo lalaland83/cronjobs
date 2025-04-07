@@ -1,0 +1,41 @@
+name: Execute Scheduled Task
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Placeholder, will be replaced dynamically
+
+jobs:
+  run-task:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for stop signal
+        run: |
+          if [ -f restart.txt ]; then
+            echo "Restart flag found. Exiting..."
+            exit 0
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run task
+        run: npm run run:task
+
+      - name: Append to executed.json
+        run: npm run append:executed
+
+      - name: Generate next schedule
+        run: npm run generate:schedule
+
+      - name: Commit updated files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "✅ Task executed and next scheduled"
+          file_pattern: |
+            pending.json
+            executed.json
+            .github/workflows/execute-job.yml

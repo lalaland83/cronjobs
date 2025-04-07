@@ -1,0 +1,17 @@
+name: Stop Scheduler
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stop workflow
+        run: echo "stop" > restart.txt
+      - name: Commit stop signal
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🛑 Stop signal set"
+          file_pattern: restart.txt
