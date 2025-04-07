@@ -31,3 +31,6 @@ try {
   console.error('❌ Fehler beim Reset:', error.message);
   process.exit(1);
 }
+
+// Force mark a dummy file change to ensure Git sees changes
+fs.writeFileSync('dummy.txt', `Last reset at ${new Date().toISOString()}\n`);
