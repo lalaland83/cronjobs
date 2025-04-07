@@ -4,31 +4,24 @@ const path = require('path');
 const pendingPath = path.join(__dirname, '..', '..', 'pending.json');
 const workflowPath = path.join(__dirname, '..', '..', '.github', 'workflows', 'execute-job.yml');
 
+// 📄 pending.json laden
 const pending = JSON.parse(fs.readFileSync(pendingPath, 'utf-8'));
-const now = new Date();
-const buffer = 2 * 60 * 1000; // 2 Minuten Sicherheitsabstand
+const nextTimestamp = new Date(pending.timestamps[0]);
 
-// Nächsten sinnvollen Timestamp suchen
-const nextTimestamp = pending.timestamps
-  .map(t => new Date(t))
-  .find(t => t.getTime() > now.getTime() + buffer);
+// ⏱ Uhrzeit extrahieren
+const minute = nextTimestamp.getUTCMinutes();
+const hour = nextTimestamp.getUTCHours();
 
-if (!nextTimestamp) {
-  console.error('❌ Kein gültiger Timestamp gefunden.');
-  process.exit(1);
-}
+// 🕒 Cron-String vorbereiten
+const newSchedule = `${minute} ${hour} * * *`;
 
-const cronMinute = nextTimestamp.getUTCMinutes();
-const cronHour = nextTimestamp.getUTCHours();
-const newSchedule = `${cronMinute} ${cronHour} * * *`;
-
+// 🔁 Alte Zeit in Workflow-Datei ersetzen
 let workflow = fs.readFileSync(workflowPath, 'utf-8');
-
-// Bestehenden schedule-Eintrag ersetzen
 workflow = workflow.replace(
   /schedule:\s*\n\s*-\s*cron:\s*["'][^"']+["']/,
   `schedule:\n  - cron: "${newSchedule}"`
 );
 
+// 💾 Neue Datei schreiben
 fs.writeFileSync(workflowPath, workflow);
 console.log(`🕒 Next scheduled task at: ${newSchedule}`);
