@@ -14,7 +14,7 @@ jobs:
         run: sudo apt-get install jq
       - name: Generate and Trigger Cron Jobs
         env:
-          GH_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ secrets.CRON_PAT }}
         run: |
           now=$(date +%s)
           cronTimes=$(jq -c --arg now "$now" '[0,1,2,3,4] | map(($now | tonumber) + (. * 60) | strftime("%M %H * * *"))' <<< '[]')
@@ -52,7 +52,7 @@ jobs:
                     file_pattern: 'executed.json pending.json restart.txt'
           EOF
           echo "Generated cron times: $cronTimes"
-      - name: Commit Changes
+      - name: Commit Changes with PAT
         env:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
@@ -61,16 +61,17 @@ jobs:
           git add .github/workflows/cron-jobs.yml pending.json
           git commit -m "Update cron jobs and pending" || echo "Nothing to commit"
           git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/lalaland83/cronjobs.git
-          git push
+          git push || echo "Push failed"
+          echo "Remote URL: $(git remote get-url origin)"
       - name: Clean Restart File
         if: always()
         env:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/lalaland83/cronjobs.git
           if [ -f restart.txt ]; then
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/lalaland83/cronjobs.git
             rm -f restart.txt
             git add restart.txt
             git commit -m "Clean restart file" || echo "No changes to commit"
