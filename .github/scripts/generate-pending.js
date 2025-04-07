@@ -1,36 +1,29 @@
 const fs = require('fs');
 const path = require('path');
 
-const COUNT = 5;
-const RANGE_MINUTES = 10;
+const NUM_TIMESTAMPS = 5;
+const INTERVAL_MINUTES = 10;
 
-function getRandomTimestamps(count, rangeMinutes) {
-  const now = new Date();
-  const timestamps = [];
+const now = new Date();
+const timestamps = [];
 
-  for (let i = 0; i < count; i++) {
-    const randomOffset = Math.floor(Math.random() * rangeMinutes * 60 * 1000);
-    const timestamp = new Date(now.getTime() + randomOffset);
-    timestamps.push(timestamp);
-  }
-
-  return timestamps
-    .sort((a, b) => a - b)
-    .map(ts => ts.toISOString()); // erst nach dem Sortieren konvertieren!
+for (let i = 0; i < NUM_TIMESTAMPS; i++) {
+  const offset = Math.floor(Math.random() * INTERVAL_MINUTES * 60 * 1000); // Zufall in ms
+  const ts = new Date(now.getTime() + offset).toISOString();
+  timestamps.push(ts);
 }
 
+// Sortieren nach Zeit
+timestamps.sort((a, b) => new Date(a) - new Date(b));
 
-const timestamps = getRandomTimestamps(COUNT, RANGE_MINUTES);
-
-const data = {
+const pending = {
   meta: {
-    generated_at: new Date().toISOString(),
+    generated_at: now.toISOString()
   },
-  timestamps,
+  timestamps
 };
 
-const filePath = path.join(__dirname, '..', '..', 'pending.json');
-fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-console.log(`📅 Generated new pending.json with:`);
-console.log(JSON.stringify(data.timestamps, null, 2));
-console.log(`📄 Geschrieben nach: ${filePath}`);
+const outputPath = path.join(__dirname, '..', '..', 'pending.json');
+fs.writeFileSync(outputPath, JSON.stringify(pending, null, 2));
+console.log(`📅 Generated new pending.json with:\n`, timestamps);
+console.log(`📄 Geschrieben nach: ${outputPath}`);
