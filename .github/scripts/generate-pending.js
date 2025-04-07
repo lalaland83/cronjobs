@@ -3,23 +3,43 @@ const path = require('path');
 
 const pendingPath = path.join(__dirname, '..', '..', 'pending.json');
 
+// Startzeit = jetzt + 2 Minuten Puffer
 const now = new Date();
-const timestamps = new Set();
+const start = new Date(now.getTime() + 2 * 60 * 1000); // +2 min
+const end = new Date(start.getTime() + 10 * 60 * 1000); // +10 min Fenster
 
-while (timestamps.size < 5) {
-  const offset = Math.floor(Math.random() * (10 * 60 * 1000)); // 10 Minuten
-  const future = new Date(now.getTime() + offset + 2 * 60 * 1000); // +2 Minuten Puffer
-  timestamps.add(future.toISOString());
+const minGapMs = 90 * 1000; // 90 Sekunden Abstand
+
+function getRandomTimestampBetween(start, end) {
+  const diff = end.getTime() - start.getTime();
+  const offset = Math.floor(Math.random() * diff);
+  return new Date(start.getTime() + offset);
 }
 
-const sorted = Array.from(timestamps).sort(); // Sortierung als ISO-Strings klappt super
+const timestamps = [];
 
-const data = {
+while (timestamps.length < 5) {
+  const candidate = getRandomTimestampBetween(start, end);
+
+  const isValid = timestamps.every(existing =>
+    Math.abs(new Date(existing) - candidate) >= minGapMs
+  );
+
+  if (isValid) {
+    timestamps.push(candidate.toISOString());
+  }
+}
+
+// Timestamps sortieren
+timestamps.sort((a, b) => new Date(a) - new Date(b));
+
+// JSON schreiben
+const result = {
   meta: {
-    generated_at: now.toISOString()
+    generated_at: new Date().toISOString()
   },
-  timestamps: sorted
+  timestamps
 };
 
-fs.writeFileSync(pendingPath, JSON.stringify(data, null, 2));
-console.log('✅ Neue sortierte pending.json gespeichert');
+fs.writeFileSync(pendingPath, JSON.stringify(result, null, 2));
+console.log(`✅ Neue pending.json geschrieben: ${pendingPath}`);
