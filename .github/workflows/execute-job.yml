@@ -1,6 +1,6 @@
 concurrency:
   group: cronjob-lock
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 name: Execute Scheduled Task
 
