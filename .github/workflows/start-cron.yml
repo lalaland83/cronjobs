@@ -53,14 +53,24 @@ jobs:
           EOF
           echo "Generated cron times: $cronTimes"
       - name: Commit Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'Update cron jobs and pending'
-          file_pattern: '.github/workflows/cron-jobs.yml pending.json'
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/cron-jobs.yml pending.json
+          git commit -m "Update cron jobs and pending" || echo "Nothing to commit"
+          git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/lalaland83/cronjobs.git
+          git push
       - name: Clean Restart File
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
         run: |
           if [ -f restart.txt ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/lalaland83/cronjobs.git
             rm -f restart.txt
             git add restart.txt
             git commit -m "Clean restart file" || echo "No changes to commit"
