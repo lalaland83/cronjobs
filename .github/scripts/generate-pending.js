@@ -3,43 +3,30 @@ const path = require('path');
 
 const pendingPath = path.join(__dirname, '..', '..', 'pending.json');
 
-// Startzeit = jetzt + 2 Minuten Puffer
+// Konfigurierbare Werte
+const MIN_OFFSET_MINUTES = 2;
+const RANGE_MINUTES = 3;
+
+// Zeit jetzt + minOffset
 const now = new Date();
-const start = new Date(now.getTime() + 2 * 60 * 1000); // +2 min
-const end = new Date(start.getTime() + 10 * 60 * 1000); // +10 min Fenster
+const minTime = new Date(now.getTime() + MIN_OFFSET_MINUTES * 60 * 1000);
 
-const minGapMs = 90 * 1000; // 90 Sekunden Abstand
+// Zeit jetzt + minOffset + range
+const maxTime = new Date(minTime.getTime() + RANGE_MINUTES * 60 * 1000);
 
-function getRandomTimestampBetween(start, end) {
-  const diff = end.getTime() - start.getTime();
-  const offset = Math.floor(Math.random() * diff);
-  return new Date(start.getTime() + offset);
-}
+// Zufälliger Zeitpunkt zwischen minTime und maxTime
+const randomTime = new Date(
+  minTime.getTime() + Math.random() * (maxTime.getTime() - minTime.getTime())
+);
 
-const timestamps = [];
-
-while (timestamps.length < 5) {
-  const candidate = getRandomTimestampBetween(start, end);
-
-  const isValid = timestamps.every(existing =>
-    Math.abs(new Date(existing) - candidate) >= minGapMs
-  );
-
-  if (isValid) {
-    timestamps.push(candidate.toISOString());
-  }
-}
-
-// Timestamps sortieren
-timestamps.sort((a, b) => new Date(a) - new Date(b));
-
-// JSON schreiben
+// JSON erzeugen
 const result = {
   meta: {
     generated_at: new Date().toISOString()
   },
-  timestamps
+  timestamps: [randomTime.toISOString()]
 };
 
+// Schreiben
 fs.writeFileSync(pendingPath, JSON.stringify(result, null, 2));
-console.log(`✅ Neue pending.json geschrieben: ${pendingPath}`);
+console.log('✅ Neue pending.json mit 1 Timestamp:', result.timestamps[0]);
