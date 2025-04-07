@@ -11,11 +11,14 @@ function getRandomTimestamps(count, rangeMinutes) {
   for (let i = 0; i < count; i++) {
     const randomOffset = Math.floor(Math.random() * rangeMinutes * 60 * 1000);
     const timestamp = new Date(now.getTime() + randomOffset);
-    timestamps.push(timestamp.toISOString());
+    timestamps.push(timestamp);
   }
 
-  return timestamps.sort(); // <-- Timestamps sortieren!
+  return timestamps
+    .sort((a, b) => a - b)
+    .map(ts => ts.toISOString()); // erst nach dem Sortieren konvertieren!
 }
+
 
 const timestamps = getRandomTimestamps(COUNT, RANGE_MINUTES);
 
