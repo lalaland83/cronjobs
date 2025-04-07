@@ -33,11 +33,14 @@ jobs:
       - name: Append to executed.json
         run: npm run append:executed
 
-      - name: Reset scheduler (generate new pending)
-        run: npm run reset:scheduler
-
       - name: Generate next schedule
         run: npm run generate:schedule
+
+      - name: Pull latest changes
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git pull --rebase origin main
 
       - name: Commit updated files
         uses: stefanzweifel/git-auto-commit-action@v5
