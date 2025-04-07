@@ -1,25 +1,33 @@
-// .github/scripts/generate-pending.js
 const fs = require('fs');
 const path = require('path');
 
-// Absoluter Pfad zur richtigen Datei im Projekt-Root
-const filePath = path.resolve(__dirname, '../../pending.json');
+const COUNT = 5;
+const RANGE_MINUTES = 10;
 
-const timestamps = [];
-for (let i = 0; i < 5; i++) {
+function getRandomTimestamps(count, rangeMinutes) {
   const now = new Date();
-  const offset = Math.floor(Math.random() * 300); // bis zu 5 Minuten (in Sekunden)
-  now.setSeconds(now.getSeconds() + offset);
-  timestamps.push(now.toISOString());
+  const timestamps = [];
+
+  for (let i = 0; i < count; i++) {
+    const randomOffset = Math.floor(Math.random() * rangeMinutes * 60 * 1000);
+    const timestamp = new Date(now.getTime() + randomOffset);
+    timestamps.push(timestamp.toISOString());
+  }
+
+  return timestamps.sort(); // <-- Timestamps sortieren!
 }
 
-// Optional: alte Datei löschen
-if (fs.existsSync(filePath)) {
-  fs.unlinkSync(filePath);
-  console.log('🗑️ Alte pending.json gelöscht');
-}
+const timestamps = getRandomTimestamps(COUNT, RANGE_MINUTES);
 
-// Neue Datei schreiben
-fs.writeFileSync(filePath, JSON.stringify(timestamps, null, 2));
-console.log('📅 Generated new pending.json with:', timestamps);
-console.log('📄 Geschrieben nach:', filePath);
+const data = {
+  meta: {
+    generated_at: new Date().toISOString(),
+  },
+  timestamps,
+};
+
+const filePath = path.join(__dirname, '..', '..', 'pending.json');
+fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+console.log(`📅 Generated new pending.json with:`);
+console.log(JSON.stringify(data.timestamps, null, 2));
+console.log(`📄 Geschrieben nach: ${filePath}`);
