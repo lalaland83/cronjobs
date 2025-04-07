@@ -1,28 +1,25 @@
+// .github/scripts/generate-pending.js
 const fs = require('fs');
+const path = require('path');
 
-function generateRandomTimes(baseDate = new Date()) {
-  const times = new Set();
-  while (times.size < 5) {
-    const offset = Math.floor(Math.random() * 5 * 60 * 1000); // innerhalb von 5 Minuten
-    const newTime = new Date(baseDate.getTime() + offset).toISOString();
-    times.add(newTime);
-  }
-  return Array.from(times);
+// Absoluter Pfad zur richtigen Datei im Projekt-Root
+const filePath = path.resolve(__dirname, '../../pending.json');
+
+const timestamps = [];
+for (let i = 0; i < 5; i++) {
+  const now = new Date();
+  const offset = Math.floor(Math.random() * 300); // bis zu 5 Minuten (in Sekunden)
+  now.setSeconds(now.getSeconds() + offset);
+  timestamps.push(now.toISOString());
 }
 
-const pending = generateRandomTimes();
-
-// Bestehende vergleichen, nur neu schreiben wenn anders
-const filePath = 'pending.json';
-const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath)) : [];
-
-const changed = JSON.stringify(existing) !== JSON.stringify(pending);
-if (changed) {
-  fs.writeFileSync(filePath, JSON.stringify(pending, null, 2));
-  console.log('📅 Generated new pending.json with:', pending);
-} else {
-  // Force change: füge leeren Eintrag ein und dann wieder raus (Hack)
-  fs.writeFileSync(filePath, JSON.stringify([], null, 2));
-  fs.writeFileSync(filePath, JSON.stringify(pending, null, 2));
-  console.log('📅 No change detected – forced rewrite to trigger commit.');
+// Optional: alte Datei löschen
+if (fs.existsSync(filePath)) {
+  fs.unlinkSync(filePath);
+  console.log('🗑️ Alte pending.json gelöscht');
 }
+
+// Neue Datei schreiben
+fs.writeFileSync(filePath, JSON.stringify(timestamps, null, 2));
+console.log('📅 Generated new pending.json with:', timestamps);
+console.log('📄 Geschrieben nach:', filePath);
