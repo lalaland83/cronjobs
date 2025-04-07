@@ -25,3 +25,5 @@ jobs:
           file_pattern: |
             pending.json
             .github/workflows/execute-job.yml
+             dummy.txt
+            .github/workflows/execute-job.yml
