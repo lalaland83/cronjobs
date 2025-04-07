@@ -33,6 +33,9 @@ jobs:
       - name: Append to executed.json
         run: npm run append:executed
 
+      - name: Reset scheduler (generate new pending)
+        run: npm run reset:scheduler
+
       - name: Generate next schedule
         run: npm run generate:schedule
 
