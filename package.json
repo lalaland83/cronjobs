@@ -5,7 +5,8 @@
     "generate:pending": "node .github/scripts/generate-pending.js",
     "generate:schedule": "node .github/scripts/generate-next-schedule.js",
     "run:task": "node .github/scripts/run-task.js",
-    "append:executed": "node .github/scripts/append-executed.js"
+    "append:executed": "node .github/scripts/append-executed.js",
+    "reset:scheduler": "node .github/scripts/reset-scheduler.js"
   },
   "dependencies": {}
 }
