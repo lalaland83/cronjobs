@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cron Job Übersicht</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+    h1 {
+      color: #58a6ff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      border: 1px solid #30363d;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    th {
+      background-color: #161b22;
+    }
+    tr:nth-child(even) {
+      background-color: #1c2128;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cron Job Übersicht</h1>
+
+  <h2>Nächste geplante Ausführungen (pending.json)</h2>
+  <table id="pending">
+    <thead>
+      <tr><th>#</th><th>Zeitpunkt (UTC)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Bereits ausgeführte Jobs (executed.json)</h2>
+  <table id="executed">
+    <thead>
+      <tr><th>#</th><th>Zeitpunkt (UTC)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const username = "lalaland83";   // <- Dein GitHub-Name
+    const repo = "cronjobs";         // <- Dein Repo-Name
+    const branch = "main";           // Oder "master", falls du das nutzt
+
+    async function loadJson(filename) {
+      const url = `https://raw.githubusercontent.com/${username}/${repo}/${branch}/${filename}`;
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      return res.json();
+    }
+
+    function renderTable(data, tableId) {
+      const tbody = document.querySelector(`#${tableId} tbody`);
+      tbody.innerHTML = "";
+      data.forEach((time, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${i + 1}</td><td>${time}</td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function updateTables() {
+      const pending = await loadJson("pending.json");
+      const executed = await loadJson("executed.json");
+
+      renderTable(pending, "pending");
+      renderTable(executed, "executed");
+    }
+
+    updateTables();
+    setInterval(updateTables, 30000); // Alle 30s aktualisieren
+  </script>
+</body>
+</html>
