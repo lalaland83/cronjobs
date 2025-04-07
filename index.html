@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cron Job Controller</title>
+  <style>
+    pre { font-family: monospace; margin: 10px 0; }
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <button onclick="startCronLoop()">Start Cron Loop</button>
+  <button onclick="stopCronLoop()" disabled>Stop Cron Loop</button>
+  <h3>Executed Cron Jobs:</h3>
+  <pre id="executed">No jobs executed yet...</pre>
+  <h3>Pending Cron Jobs:</h3>
+  <pre id="pending">No jobs pending yet...</pre>
+
+  <script>
+    let isRunning = false;
+    const repoOwner = "lalaland83"; // Ersetze mit deinem Username
+    const repoName = "cronjobs"; // Ersetze mit deinem Repo-Namen
+
+    function startCronLoop() {
+      if (isRunning) return;
+      isRunning = true;
+      document.querySelector('button:nth-child(1)').disabled = true;
+      document.querySelector('button:nth-child(2)').disabled = false;
+      console.log('Please trigger "Start Cron Loop" manually in GitHub Actions');
+      updateDisplays();
+    }
+
+    function stopCronLoop() {
+      isRunning = false;
+      document.querySelector('button:nth-child(1)').disabled = false;
+      document.querySelector('button:nth-child(2)').disabled = true;
+      console.log('Please trigger "Stop Cron Loop" manually in GitHub Actions');
+      updateDisplays();
+    }
+
+    async function updateDisplays() {
+      const executed = await fetchFile('executed.json');
+      const pending = await fetchFile('pending.json');
+      document.getElementById('executed').textContent = executed.length
+        ? executed.map(job => `${job.cron} - done - ${job.timestamp}`).join('\n')
+        : 'No jobs executed yet...';
+      document.getElementById('pending').textContent = pending.length
+        ? pending.map(job => job.cron).join('\n')
+        : 'No jobs pending yet...';
+    }
+
+    async function fetchFile(file) {
+      const res = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${file}`);
+      if (res.status === 404) return [];
+      return await res.json();
+    }
+
+    // Initiale Anzeige und Auto-Update
+    updateDisplays();
+    setInterval(updateDisplays, 60000); // Aktualisiert jede Minute
+  </script>
+</body>
+</html>
