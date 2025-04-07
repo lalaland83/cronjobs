@@ -1,44 +1,37 @@
+// .github/scripts/reset-scheduler.js
+
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
-const pendingFile = path.join(process.cwd(), 'pending.json');
+const pendingPath = path.join(__dirname, '..', '..', 'pending.json');
 
-// 🧹 Alte Datei löschen
-if (fs.existsSync(pendingFile)) {
-  fs.unlinkSync(pendingFile);
+// === Konfiguration ===
+const MIN_OFFSET_MINUTES = 2;
+const RANGE_MINUTES = 3;
+
+// === Timestamp-Logik ===
+const now = new Date();
+const min = new Date(now.getTime() + MIN_OFFSET_MINUTES * 60 * 1000);
+const max = new Date(min.getTime() + RANGE_MINUTES * 60 * 1000);
+
+// Zufälligen Zeitpunkt zwischen `min` und `max` wählen
+const randomTimestamp = new Date(min.getTime() + Math.random() * (max.getTime() - min.getTime())).toISOString();
+
+// Neue pending.json
+const pending = {
+  meta: {
+    generated_at: new Date().toISOString()
+  },
+  timestamps: [randomTimestamp]
+};
+
+// Alte Datei löschen (falls nötig)
+if (fs.existsSync(pendingPath)) {
+  fs.unlinkSync(pendingPath);
   console.log('🧹 Alte pending.json gelöscht');
 }
 
-// 📅 Neue Zeiten generieren
-const now = new Date();
-const timestamps = [];
-for (let i = 0; i < 5; i++) {
-  const randomOffset = Math.floor(Math.random() * 4 * 60 * 1000); // innerhalb von 4 Minuten
-  const newTime = new Date(now.getTime() + randomOffset);
-  timestamps.push(newTime.toISOString());
-}
-
-// 🧠 Um sicher zu gehen, dass sich die Datei ändert, fügen wir einen extra Timestamp ein
-const meta = { generated_at: new Date().toISOString() };
-
-const output = {
-  meta,
-  timestamps
-};
-
-// 💾 Speichern
-fs.writeFileSync(pendingFile, JSON.stringify(output, null, 2));
-console.log('📄 Neue pending.json geschrieben:', pendingFile);
-
-// 🕵️ Git-Diff anzeigen (zum Debuggen)
-try {
-  const diff = execSync(`git diff ${pendingFile}`).toString();
-  if (diff.trim()) {
-    console.log('🟢 Änderungen erkannt:\n', diff);
-  } else {
-    console.log('🔴 Keine Änderungen erkannt – Inhalt evtl. identisch?');
-  }
-} catch (err) {
-  console.error('❌ Fehler beim git diff:', err);
-}
+// Neue Datei schreiben
+fs.writeFileSync(pendingPath, JSON.stringify(pending, null, 2));
+console.log(`📄 Neue pending.json geschrieben: ${pendingPath}`);
+console.log(`⏱ Timestamp gesetzt: ${randomTimestamp}`);
