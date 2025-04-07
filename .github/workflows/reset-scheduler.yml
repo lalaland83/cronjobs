@@ -22,8 +22,25 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "📅 Scheduler reset"
-          file_pattern: |
-            pending.json
-            .github/workflows/execute-job.yml
-             dummy.txt
-            .github/workflows/execute-job.yml
+          file_pattern: pending.json
+
+  generate_next_schedule:
+    needs: reset
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate next schedule
+        run: npm run generate:schedule
+
+      - name: Commit updated schedule
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🔁 Next cron scheduled"
+          file_pattern: .github/workflows/execute-job.yml
