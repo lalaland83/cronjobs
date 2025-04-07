@@ -1,0 +1,62 @@
+name: Start Cron Loop
+on:
+  workflow_dispatch:
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Generate and Trigger Cron Jobs
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          now=$(date +%s)
+          cronTimes=$(jq -c '[0,1,2,3,4] | map($now + (. * 60) | strftime("%M %H * * *"))' <<< '[]')
+          pending=$(echo "$cronTimes" | jq -r '.[] | {"cron": ., "status": "pending"}' | jq -s '.')
+          echo "$pending" > pending.json
+          cat <<EOF > .github/workflows/cron-jobs.yml
+          name: Scheduled Cron Jobs
+          on:
+            schedule:
+          $(echo "$cronTimes" | jq -r '.[] | "    - cron: \(. | tostring)"')
+          jobs:
+            execute-cron:
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout
+                  uses: actions/checkout@v4
+                - name: Install jq
+                  run: sudo apt-get install jq
+                - name: Execute Cron
+                  env:
+                    GH_TOKEN: \${{ secrets.PAT }}
+                  run: |
+                    timestamp=$(date -u -Iseconds)
+                    executed=$(cat executed.json 2>/dev/null || echo '[]')
+                    cron=$(date -u +"%M %H * * *")
+                    echo "\$executed" | jq -c ". + [{\\"cron\\": \\"\$cron\\", \\"timestamp\\": \\"\$timestamp\\", \\"status\\": \\"done\\"}]" > executed.json
+                    pending=$(cat pending.json 2>/dev/null || echo '[]')
+                    pending=$(echo "\$pending" | jq -c "map(select(.cron != \\"\$cron\\"))")
+                    echo "\$pending" > pending.json
+                    if [ "$(echo "$cronTimes" | jq -r '.[-1]')" = "$cron" ] && [ ! -f stop.json ]; then
+                      curl -X POST \
+                        -H "Authorization: token \$GH_TOKEN" \
+                        -H "Accept: application/vnd.github.v3+json" \
+                        https://api.github.com/repos/${{ github.repository }}/dispatches \
+                        -d '{"event_type": "start-cron"}'
+                    fi
+                - name: Commit Changes
+                  uses: stefanzweifel/git-auto-commit-action@v5
+                  with:
+                    commit_message: 'Update executed and pending jobs'
+                    file_pattern: 'executed.json pending.json'
+          EOF
+          echo "Generated cron times: $cronTimes"
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update cron jobs and pending'
+          file_pattern: '.github/workflows/cron-jobs.yml pending.json'

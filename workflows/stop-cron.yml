@@ -1,0 +1,17 @@
+name: Stop Cron Loop
+on:
+  workflow_dispatch:
+jobs:
+  stop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Stop Cron Loop
+        run: |
+          echo '{"stopped": true}' > stop.json
+      - name: Commit Stop File
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Stop cron loop'
+          file_pattern: 'stop.json'
