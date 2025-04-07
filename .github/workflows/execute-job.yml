@@ -3,6 +3,10 @@ name: Execute Scheduled Task
 on:
   schedule:
     - cron: '*/5 * * * *'  # Placeholder, will be replaced dynamically
+    
+permissions:
+  contents: write
+  actions: write
 
 jobs:
   run-task:
