@@ -1,23 +1,28 @@
 const fs = require('fs');
-const PENDING_FILE = 'pending.json';
-const INTERVAL_MINUTES = 5;
-const COUNT = 5;
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
-function generateTimestamps(count) {
-  const now = new Date();
-  const timestamps = new Set();
-  while (timestamps.size < count) {
-    const offset = getRandomInt(INTERVAL_MINUTES * 60 * 1000);
-    const future = new Date(now.getTime() + offset);
-    timestamps.add(future.toISOString());
+function generateRandomTimes(baseDate = new Date()) {
+  const times = new Set();
+  while (times.size < 5) {
+    const offset = Math.floor(Math.random() * 5 * 60 * 1000); // innerhalb von 5 Minuten
+    const newTime = new Date(baseDate.getTime() + offset).toISOString();
+    times.add(newTime);
   }
-  return Array.from(timestamps).sort();
+  return Array.from(times);
 }
 
-const newTimes = generateTimestamps(COUNT);
-fs.writeFileSync(PENDING_FILE, JSON.stringify(newTimes, null, 2));
-console.log('📅 Generated pending.json with:', newTimes);
+const pending = generateRandomTimes();
+
+// Bestehende vergleichen, nur neu schreiben wenn anders
+const filePath = 'pending.json';
+const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath)) : [];
+
+const changed = JSON.stringify(existing) !== JSON.stringify(pending);
+if (changed) {
+  fs.writeFileSync(filePath, JSON.stringify(pending, null, 2));
+  console.log('📅 Generated new pending.json with:', pending);
+} else {
+  // Force change: füge leeren Eintrag ein und dann wieder raus (Hack)
+  fs.writeFileSync(filePath, JSON.stringify([], null, 2));
+  fs.writeFileSync(filePath, JSON.stringify(pending, null, 2));
+  console.log('📅 No change detected – forced rewrite to trigger commit.');
+}
