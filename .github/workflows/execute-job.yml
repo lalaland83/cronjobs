@@ -1,6 +1,6 @@
 concurrency:
   group: cronjob-lock
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 name: Execute Scheduled Task
 
@@ -19,10 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Git identity
+      - name: Git pull to avoid push conflict (initial rebase)
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git pull --rebase origin main
 
       - name: Check for stop signal
         run: |
@@ -45,9 +46,14 @@ jobs:
       - name: Generate next schedule
         run: npm run generate:schedule
 
-      - name: Commit and push changes manually
-        run: |
-          git add pending.json executed.json .github/workflows/execute-job.yml
-          git commit -m "✅ Task executed and next scheduled" || echo "⚠️ Nothing to commit"
-          git pull --rebase origin main
-          git push origin main
+      - name: Rebase before pushing to avoid non-fast-forward errors
+        run: git pull --rebase origin main
+
+      - name: Commit updated files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "✅ Task executed and next scheduled"
+          file_pattern: |
+            pending.json
+            executed.json
+            .github/workflows/execute-job.yml
