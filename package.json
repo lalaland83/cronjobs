@@ -1,0 +1,12 @@
+{
+  "name": "cron-runner",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "generate:pending": "node .github/scripts/generate-pending.js",
+    "generate:schedule": "node .github/scripts/generate-next-schedule.js",
+    "run:task": "node .github/scripts/run-task.js",
+    "append:executed": "node .github/scripts/append-executed.js"
+  },
+  "dependencies": {}
+}
