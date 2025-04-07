@@ -14,7 +14,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
           now=$(date +%s)
-          cronTimes=$(jq -c '[0,1,2,3,4] | map($now + (. * 60) | strftime("%M %H * * *"))' <<< '[]')
+          cronTimes=$(jq -c --arg now "$now" '[0,1,2,3,4] | map(($now | tonumber) + (. * 60) | strftime("%M %H * * *"))' <<< '[]')
           pending=$(echo "$cronTimes" | jq -r '.[] | {"cron": ., "status": "pending"}' | jq -s '.')
           echo "$pending" > pending.json
           cat <<EOF > .github/workflows/cron-jobs.yml
