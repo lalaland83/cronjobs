@@ -2,8 +2,8 @@ name: Execute Scheduled Task
 
 on:
   schedule:
-    - cron: '54 15 * * *'
-    
+    - cron: '0 12 * * *' # Wird bei jedem Durchlauf von generate:schedule überschrieben
+
 permissions:
   contents: write
   actions: write
@@ -11,13 +11,14 @@ permissions:
 jobs:
   run-task:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Check for stop signal
         run: |
           if [ -f restart.txt ]; then
-            echo "Restart flag found. Exiting..."
+            echo "⛔️ Restart flag gefunden. Abbruch."
             exit 0
           fi
 
