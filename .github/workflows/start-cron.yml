@@ -1,0 +1,88 @@
+name: Start Cron Loop
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'restart.txt'
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Generate and Trigger Cron Jobs
+        run: |
+          now=$(date +%s)
+          cronTimes=$(jq -n --argjson now "$now" '[0,1,2,3,4] | map(($now + (. * 60)) | strftime("%M %H * * *"))')
+
+          pending=$(echo "$cronTimes" | jq -r '.[] | {"cron": ., "status": "pending"}' | jq -s '.')
+          echo "$pending" > pending.json
+
+          mkdir -p .github/workflows
+
+          {
+            echo "name: Scheduled Cron Jobs"
+            echo ""
+            echo "on:"
+            echo "  schedule:"
+            echo "$cronTimes" | jq -r '.[] | "    - cron: \"" + . + "\""' 
+            echo ""
+            echo "jobs:"
+            echo "  execute-cron:"
+            echo "    runs-on: ubuntu-latest"
+            echo "    steps:"
+            echo "      - name: Checkout"
+            echo "        uses: actions/checkout@v4"
+            echo ""
+            echo "      - name: Install jq"
+            echo "        run: sudo apt-get install jq -y"
+            echo ""
+            echo "      - name: Execute Cron"
+            echo "        run: |"
+            echo "          timestamp=\$(date -u -Iseconds)"
+            echo "          cron=\$(date -u +\"%M %H * * *\")"
+            echo ""
+            echo "          executed=\$(cat executed.json 2>/dev/null || echo '[]')"
+            echo "          echo \"\$executed\" | jq --arg cron \"\$cron\" --arg timestamp \"\$timestamp\" \". + [{\\\"cron\\\": \$cron, \\\"timestamp\\\": \$timestamp, \\\"status\\\": \\\"done\\\"}]\" > executed.json"
+            echo ""
+            echo "          pending=\$(cat pending.json 2>/dev/null || echo '[]')"
+            echo "          echo \"\$pending\" | jq --arg cron \"\$cron\" 'map(select(.cron != \$cron))' > pending.json"
+            echo ""
+            echo "          last_cron=\$(jq -r '.[-1]' <<< $cronTimes)"
+            echo "          if [ \"\$cron\" = \"\$last_cron\" ] && [ ! -f stop.json ]; then"
+            echo "            echo \"Restarting...\" > restart.txt"
+            echo "          fi"
+            echo ""
+            echo "      - name: Commit Changes"
+            echo "        uses: stefanzweifel/git-auto-commit-action@v5"
+            echo "        with:"
+            echo "          commit_message: 'Update executed and pending jobs'"
+            echo "          file_pattern: 'executed.json pending.json restart.txt'"
+          } > .github/workflows/cron-jobs.yml
+
+          echo "Generated cron times:"
+          echo "$cronTimes"
+
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update cron jobs and pending'
+          file_pattern: '.github/workflows/cron-jobs.yml pending.json'
+
+      - name: Clean Restart File
+        if: always()
+        run: |
+          if [ -f restart.txt ]; then
+            rm -f restart.txt
+            git add restart.txt
+            git commit -m "Clean restart file" || echo "No changes to commit"
+            git push || echo "Push skipped"
+          else
+            echo "No restart.txt to clean"
+          fi
