@@ -1,36 +1,44 @@
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
-function run(command) {
-  execSync(command, { stdio: 'inherit' });
+const pendingFile = path.join(process.cwd(), 'pending.json');
+
+// 🧹 Alte Datei löschen
+if (fs.existsSync(pendingFile)) {
+  fs.unlinkSync(pendingFile);
+  console.log('🧹 Alte pending.json gelöscht');
 }
 
+// 📅 Neue Zeiten generieren
+const now = new Date();
+const timestamps = [];
+for (let i = 0; i < 5; i++) {
+  const randomOffset = Math.floor(Math.random() * 4 * 60 * 1000); // innerhalb von 4 Minuten
+  const newTime = new Date(now.getTime() + randomOffset);
+  timestamps.push(newTime.toISOString());
+}
+
+// 🧠 Um sicher zu gehen, dass sich die Datei ändert, fügen wir einen extra Timestamp ein
+const meta = { generated_at: new Date().toISOString() };
+
+const output = {
+  meta,
+  timestamps
+};
+
+// 💾 Speichern
+fs.writeFileSync(pendingFile, JSON.stringify(output, null, 2));
+console.log('📄 Neue pending.json geschrieben:', pendingFile);
+
+// 🕵️ Git-Diff anzeigen (zum Debuggen)
 try {
-  // 🔄 Git Config setzen für Actions
-  run(`git config user.email "41898282+github-actions[bot]@users.noreply.github.com"`);
-  run(`git config user.name "github-actions[bot]"`);
-
-  // 🧹 Alte pending.json löschen
-  if (fs.existsSync('pending.json')) {
-    fs.unlinkSync('pending.json');
-    console.log('🧹 Alte pending.json gelöscht');
+  const diff = execSync(`git diff ${pendingFile}`).toString();
+  if (diff.trim()) {
+    console.log('🟢 Änderungen erkannt:\n', diff);
+  } else {
+    console.log('🔴 Keine Änderungen erkannt – Inhalt evtl. identisch?');
   }
-
-  // 🔧 Neue pending.json generieren
-  run('npm run generate:pending');
-
-  // 🕒 Nächsten Schedule in YAML schreiben
-  run('npm run generate:schedule');
-
-  // ✅ Änderungen committen
-  run('git add pending.json .github/workflows/execute-job.yml');
-  run('git commit -m "📅 Initial reset"');
-  console.log('✅ Reset erfolgreich abgeschlossen.');
-
-} catch (error) {
-  console.error('❌ Fehler beim Reset:', error.message);
-  process.exit(1);
+} catch (err) {
+  console.error('❌ Fehler beim git diff:', err);
 }
-
-// Force mark a dummy file change to ensure Git sees changes
-fs.writeFileSync('dummy.txt', `Last reset at ${new Date().toISOString()}\n`);
