@@ -2,7 +2,7 @@ name: Execute Scheduled Task
 
 on:
   schedule:
-    - cron: '0 12 * * *' # Wird bei jedem Durchlauf von generate:schedule überschrieben
+    - cron: '0 12 * * *' # Wird automatisch überschrieben
 
 permissions:
   contents: write
@@ -36,7 +36,7 @@ jobs:
       - name: Generate next schedule
         run: npm run generate:schedule
 
-      - name: Pull latest changes
+      - name: Git pull to avoid push conflict
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
