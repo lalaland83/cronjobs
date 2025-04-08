@@ -5,7 +5,7 @@ const EXECUTE_JOB_PATH = path.join('.github', 'workflows', 'execute-job.yml');
 const STOP_FILE = 'stop.json';
 
 const TIME_BUFFER_MINUTES = 2;
-const TIME_RANGE_MINUTES = 5;
+const TIME_RANGE_MINUTES = 3;
 
 function shouldStop() {
   try {
