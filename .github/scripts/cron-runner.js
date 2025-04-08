@@ -10,8 +10,11 @@ const TIME_RANGE_MINUTES = 5;
 function shouldStop() {
   try {
     const stop = JSON.parse(fs.readFileSync(STOP_FILE, 'utf8'));
-    return stop?.stop === true;
+    const stopping = stop?.stop === true;
+    console.log(`📄 stop.json gefunden. Stop-Flag: ${stopping}`);
+    return stopping;
   } catch (e) {
+    console.log('📄 stop.json nicht gefunden oder ungültig – fahre fort.');
     return false;
   }
 }
@@ -21,6 +24,10 @@ function generateRandomCronDate() {
   const min = new Date(now.getTime() + TIME_BUFFER_MINUTES * 60000);
   const max = new Date(min.getTime() + TIME_RANGE_MINUTES * 60000);
   const randomTime = new Date(min.getTime() + Math.random() * (max.getTime() - min.getTime()));
+
+  console.log(`🕒 Jetzt:       ${now.toISOString()}`);
+  console.log(`🕒 Zeitfenster: ${min.toISOString()} - ${max.toISOString()}`);
+  console.log(`🎯 Gewählt:     ${randomTime.toISOString()}`);
 
   return {
     minute: randomTime.getUTCMinutes(),
@@ -59,7 +66,7 @@ jobs:
         run: npm install
 
       - name: Run script
-        run: node scripts/script.js
+        run: node .github/scripts/script.js
 
       - name: Commit initial schedule manually
         run: |
@@ -70,11 +77,13 @@ jobs:
           git commit -m "🟢 First cron scheduled"
           git push
 `;
+
   fs.writeFileSync(EXECUTE_JOB_PATH, content.trim());
-  console.log(`✅ Neue Zeit generiert: ${minute} ${hour} UTC`);
+  console.log(`✅ Neue Cron-Zeit in execute-job.yml geschrieben: ${minute} ${hour} UTC`);
 }
 
 function main() {
+  console.log('🚀 Starte Cron-Runner...');
   if (shouldStop()) {
     console.log('🛑 Stop-Datei erkannt. Cron-Loop wird nicht fortgesetzt.');
     return;
