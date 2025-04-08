@@ -12,15 +12,9 @@
     <script>
         document.getElementById("triggerButton").addEventListener("click", async function() {
             try {
-                const response = await fetch(`https://api.github.com/repos/${process.env.USERNAME}/${process.env.REPO}/actions/workflows/${process.env.WORKFLOW_FILE}/dispatches`, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${process.env.PAT_PUSH}`,
-                        "Accept": "application/vnd.github.v3+json",
-                    },
-                    body: JSON.stringify({
-                        ref: process.env.BRANCH
-                    })
+                // Anfrage an den Backend-Endpoint, um den GitHub-Workflow zu triggern
+                const response = await fetch("https://multichaintools.vercel.app/api/github-trigger", {
+                    method: "GET",
                 });
 
                 if (response.ok) {
