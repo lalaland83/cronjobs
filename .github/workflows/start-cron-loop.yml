@@ -4,13 +4,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write  # erlaubt Push/Commit via Actions
 
 jobs:
   kickstart:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,8 +25,11 @@ jobs:
       - name: Generate first schedule
         run: node .github/scripts/cron-runner.js
 
-      - name: Commit initial schedule
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 🟢 First cron scheduled
-          file_pattern: '.github/workflows/execute-job.yml'
+      - name: Commit initial schedule manually
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .github/workflows/execute-job.yml
+          git commit -m "🟢 First cron scheduled"
+          git push
