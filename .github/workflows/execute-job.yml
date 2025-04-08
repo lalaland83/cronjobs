@@ -3,6 +3,10 @@ name: Execute Job
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  workflows: write
+
 jobs:
   init:
     runs-on: ubuntu-latest
