@@ -2,7 +2,7 @@
     "name": "cron-loop",
     "version": "1.0.0",
     "scripts": {
-      "start": "node scripts/cron-runner.js"
+      "start": "node .github/scripts/cron-runner.js"
     },
     "dependencies": {}
   }
