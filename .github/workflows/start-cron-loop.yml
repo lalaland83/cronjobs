@@ -55,4 +55,4 @@ jobs:
           git config --unset-all http.https://github.com/.extraheader || true
 
           echo "🚀 Push zum Repo:"
-          git push origin HEAD:main || echo "⚠️ Kein Push durchgeführt"
+          git push origin main || echo "⚠️ Kein Push durchgeführt"
