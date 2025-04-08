@@ -11,25 +11,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📦 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm install
 
-      - name: Generate first schedule
+      - name: 🕒 Generate first schedule
         run: node .github/scripts/cron-runner.js
 
-      - name: Commit initial schedule manually
+      - name: ✅ Commit initial schedule manually
+        env:
+          GIT_AUTH_TOKEN: ${{ secrets.PAT_PUSH }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add .github/workflows/execute-job.yml
-          git commit -m "🟢 First cron scheduled"
-          git push
+          git commit -m "🟢 First cron scheduled" || echo "No changes to commit"
+          git push https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
