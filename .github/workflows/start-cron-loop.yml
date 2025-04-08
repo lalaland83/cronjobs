@@ -25,29 +25,28 @@ jobs:
       - name: 🕒 Generate first schedule
         run: node .github/scripts/cron-runner.js
 
-      - name: 🔍 Debug Git Info (optional, zum Überprüfen)
-        run: |
-          echo "🔧 Git Remote:"
-          git remote -v
-          echo "🔧 Git Config:"
-          git config --list
-
-      - name: ✅ Commit and push with PAT
+      - name: ✅ Commit initial schedule manually
         env:
           GIT_AUTH_TOKEN: ${{ secrets.PAT_PUSH }}
         run: |
+          echo "🔧 Git Config:"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          echo "📂 Git Status:"
+          git status
+
+          echo "➕ Git Add:"
           git add .github/workflows/execute-job.yml
 
-          git diff --cached --quiet && echo "⚠️ No changes to commit" && exit 0
-
-          git commit -m "🟢 First cron scheduled"
+          echo "📝 Git Commit:"
+          git commit -m "🟢 First cron scheduled" || echo "⚠️ No changes to commit"
 
           echo "🔁 Setze origin auf PAT:"
           git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git
 
+          echo "🧹 Entferne GitHub Actions Auth Header"
+          git config --unset-all http.https://github.com/.extraheader || true
+
           echo "🚀 Pushing mit PAT_PUSH via origin:"
           git push origin HEAD:main
-
