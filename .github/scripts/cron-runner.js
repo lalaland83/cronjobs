@@ -5,7 +5,7 @@ const EXECUTE_JOB_PATH = path.join('.github', 'workflows', 'execute-job.yml');
 const STOP_FILE = 'stop.json';
 
 const TIME_BUFFER_MINUTES = 2;
-const TIME_RANGE_MINUTES = 3;
+const TIME_RANGE_MINUTES = 5;
 
 function shouldStop() {
   try {
@@ -61,11 +61,14 @@ jobs:
       - name: Run script
         run: node scripts/script.js
 
-      - name: Commit updated cron (if any)
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 🔁 Next cron scheduled
-          file_pattern: '.github/workflows/execute-job.yml'
+      - name: Commit initial schedule manually
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .github/workflows/execute-job.yml
+          git commit -m "🟢 First cron scheduled"
+          git push
 `;
   fs.writeFileSync(EXECUTE_JOB_PATH, content.trim());
   console.log(`✅ Neue Zeit generiert: ${minute} ${hour} UTC`);
