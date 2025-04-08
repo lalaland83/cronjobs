@@ -12,18 +12,25 @@
     <script>
         document.getElementById("triggerButton").addEventListener("click", async function() {
             try {
-                // Anfrage an den Backend-Endpoint, um den GitHub-Workflow zu triggern
                 const response = await fetch("https://multichaintools.vercel.app/api/github-trigger", {
-                    method: "GET",
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ ref: "main" })
                 });
+
+                const text = await response.text(); // NICHT .json(), sondern als Text lesen
+                console.log("Antwort als Text:", text);
 
                 if (response.ok) {
                     alert("Workflow wurde erfolgreich ausgelöst!");
                 } else {
-                    alert("Fehler beim Auslösen des Workflows.");
+                    alert("Fehler beim Auslösen des Workflows:\n" + text);
                 }
             } catch (error) {
                 console.error("Fehler:", error);
+                alert("Fehler in der Anfrage:\n" + error);
             }
         });
     </script>
