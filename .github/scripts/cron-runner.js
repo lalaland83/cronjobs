@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const EXECUTE_JOB_PATH = path.join('.github', 'workflows', 'execute-job.yml');
 const STOP_FILE = 'stop.json';
@@ -67,19 +68,35 @@ jobs:
 
       - name: Run script
         run: node .github/scripts/script.js
-
-      - name: Commit initial schedule manually
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add .github/workflows/execute-job.yml
-          git commit -m "🟢 First cron scheduled"
-          git push
 `;
 
   fs.writeFileSync(EXECUTE_JOB_PATH, content.trim());
   console.log(`✅ Neue Cron-Zeit in execute-job.yml geschrieben: ${minute} ${hour} UTC`);
+}
+
+function commitAndPush() {
+  const token = process.env.PAT_PUSH;
+  const repo = process.env.GITHUB_REPOSITORY || ''; // z. B. "user/repo"
+
+  if (!token || !repo) {
+    console.error('❌ PAT_PUSH oder GITHUB_REPOSITORY nicht gesetzt!');
+    process.exit(1);
+  }
+
+  try {
+    execSync(`git config --global user.name "cron-bot"`);
+    execSync(`git config --global user.email "cron@users.noreply.github.com"`);
+
+    execSync(`git add ${EXECUTE_JOB_PATH}`);
+    execSync(`git commit -m "🕒 Neuer Cron gesetzt" || echo "⚠️ Nothing to commit"`);
+
+    execSync(`git remote set-url origin https://x-access-token:${token}@github.com/${repo}.git`);
+    execSync(`git push origin HEAD`);
+    console.log('🚀 Commit + Push erfolgreich');
+  } catch (e) {
+    console.error('❌ Commit oder Push fehlgeschlagen:', e.message);
+    process.exit(1);
+  }
 }
 
 function main() {
@@ -91,6 +108,7 @@ function main() {
 
   const { minute, hour } = generateRandomCronDate();
   updateExecuteJobYML(minute, hour);
+  commitAndPush();
 }
 
 main();
