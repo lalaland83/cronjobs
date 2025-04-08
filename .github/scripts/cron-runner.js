@@ -39,7 +39,6 @@ on:
 
 permissions:
   contents: write
-  workflows: write
 
 concurrency:
   group: cronjob-lock
