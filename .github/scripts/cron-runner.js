@@ -37,6 +37,10 @@ on:
     - cron: '${minute} ${hour} * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  workflows: write
+
 concurrency:
   group: cronjob-lock
   cancel-in-progress: true
