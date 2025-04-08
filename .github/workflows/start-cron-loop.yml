@@ -32,8 +32,6 @@ jobs:
           echo "✅ cron-runner.js wurde ausgeführt"
 
       - name: 📝 Commit und Push Änderungen
-        env:
-          GIT_AUTH_TOKEN: ${{ secrets.PAT_PUSH }}
         run: |
           echo "🔧 Git Config:"
           git config --global user.name "github-actions[bot]"
@@ -43,16 +41,21 @@ jobs:
           git status
 
           echo "➕ Git Add:"
-          git add .github/workflows/execute-job.yml
+          git add .github/workflows/execute-job.yml || echo "⚠️ Nichts zu adden"
 
           echo "📝 Git Commit:"
           git commit -m "🟢 Neuer Cron durch cron-runner gesetzt" || echo "⚠️ Nichts zu committen"
 
           echo "🔁 Setze origin auf PAT:"
-          git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_PUSH }}@github.com/${{ github.repository }}.git
 
           echo "🧹 Entferne GitHub Actions Auth Header"
           git config --unset-all http.https://github.com/.extraheader || true
 
           echo "🚀 Push zum Repo:"
           git push origin main || echo "⚠️ Kein Push durchgeführt"
+
+      - name: 🧾 Zeige Logs nach Push
+        run: |
+          echo "🔚 Workflow abgeschlossen"
+          git log -1 --stat
