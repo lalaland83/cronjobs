@@ -1,0 +1,27 @@
+name: 🔃 Start Cron Loop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kickstart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate first schedule
+        run: node scripts/cron-runner.js
+
+      - name: Commit initial schedule
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 🟢 First cron scheduled
+          file_pattern: '.github/workflows/execute-job.yml'
