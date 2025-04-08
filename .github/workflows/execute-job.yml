@@ -1,14 +1,39 @@
 name: Execute Job
 
 on:
+  schedule:
+    - cron: '16 11 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: cronjob-lock
+  cancel-in-progress: true
+
 jobs:
-  init:
+  run-script:
     runs-on: ubuntu-latest
     steps:
-      - name: Initial Setup
-        run: echo "Initial placeholder – wird durch Script ersetzt."
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run script
+        run: node scripts/script.js
+
+      - name: Commit initial schedule manually
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .github/workflows/execute-job.yml
+          git commit -m "🟢 First cron scheduled"
+          git push
