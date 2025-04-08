@@ -2,7 +2,7 @@ name: Execute Job
 
 on:
   schedule:
-    - cron: '26 11 * * *'
+    - cron: '38 11 * * *'
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         run: npm install
 
       - name: Run script
-        run: node scripts/script.js
+        run: node .github/scripts/script.js
 
       - name: Commit initial schedule manually
         run: |
