@@ -41,10 +41,13 @@ jobs:
 
           git add .github/workflows/execute-job.yml
 
-          # Falls keine Änderungen, abbrechen ohne Fehler
           git diff --cached --quiet && echo "⚠️ No changes to commit" && exit 0
 
           git commit -m "🟢 First cron scheduled"
-          
-          echo "🚀 Pushing with PAT_PUSH..."
-          git push https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+
+          echo "🔁 Setze origin auf PAT:"
+          git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git
+
+          echo "🚀 Pushing mit PAT_PUSH via origin:"
+          git push origin HEAD:main
+
