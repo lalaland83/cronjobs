@@ -18,7 +18,7 @@ jobs:
         run: npm install
 
       - name: Generate first schedule
-        run: node scripts/cron-runner.js
+        run: node .github/scripts/cron-runner.js
 
       - name: Commit initial schedule
         uses: stefanzweifel/git-auto-commit-action@v5
