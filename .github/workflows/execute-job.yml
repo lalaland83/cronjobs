@@ -1,0 +1,11 @@
+name: Execute Job
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initial Setup
+        run: echo "Initial placeholder – wird durch Script ersetzt."
