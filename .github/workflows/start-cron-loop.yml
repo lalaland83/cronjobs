@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  # erlaubt Push/Commit via Actions
+  contents: write
+  workflows: write
 
 jobs:
   kickstart:
