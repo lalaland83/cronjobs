@@ -1,4 +1,4 @@
-name: 🔃 Start Cron Loop
+name: Start Cron Loop
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  kickstart:
+  start-loop:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,10 +22,16 @@ jobs:
       - name: 📦 Install dependencies
         run: npm install
 
-      - name: 🕒 Generate first schedule
-        run: node .github/scripts/cron-runner.js
+      - name: 🕒 Run cron-runner.js
+        env:
+          PAT_PUSH: ${{ secrets.PAT_PUSH }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "🚀 Starte cron-runner.js mit Logs"
+          node .github/scripts/cron-runner.js
+          echo "✅ cron-runner.js wurde ausgeführt"
 
-      - name: ✅ Commit initial schedule manually
+      - name: 📝 Commit und Push Änderungen
         env:
           GIT_AUTH_TOKEN: ${{ secrets.PAT_PUSH }}
         run: |
@@ -40,7 +46,7 @@ jobs:
           git add .github/workflows/execute-job.yml
 
           echo "📝 Git Commit:"
-          git commit -m "🟢 First cron scheduled" || echo "⚠️ No changes to commit"
+          git commit -m "🟢 Neuer Cron durch cron-runner gesetzt" || echo "⚠️ Nichts zu committen"
 
           echo "🔁 Setze origin auf PAT:"
           git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}.git
@@ -48,5 +54,5 @@ jobs:
           echo "🧹 Entferne GitHub Actions Auth Header"
           git config --unset-all http.https://github.com/.extraheader || true
 
-          echo "🚀 Pushing mit PAT_PUSH via origin:"
-          git push origin HEAD:main
+          echo "🚀 Push zum Repo:"
+          git push origin HEAD:main || echo "⚠️ Kein Push durchgeführt"
