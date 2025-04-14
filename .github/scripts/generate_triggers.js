@@ -12,7 +12,7 @@ async function createFile() {
 
   const GITHUB_PAT = process.env.PAT_PUSH;
   const GITHUB_REPO_OWNER = process.env.USERNAME;
-  const GITHUB_REPO_NAME = process.env.REPO_PUPLIC;
+  const GITHUB_REPO_NAME = process.env.REPO_PUBLIC;
   const GITHUB_BRANCH = process.env.BRANCH;
   const GITHUB_TARGET_FILE = 'trigger_config.json';
   const GITHUB_COMMIT_MESSAGE = `Update ${GITHUB_TARGET_FILE} for ${new Date().toISOString().split('T')[0]}`;
