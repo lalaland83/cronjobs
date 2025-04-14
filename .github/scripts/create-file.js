@@ -12,9 +12,9 @@ async function createFile() {
 
   const GITHUB_PAT = process.env.PAT_PUSH;
   const GITHUB_REPO_OWNER = process.env.USERNAME;
-  const GITHUB_REPO_NAME = process.env.REPO;
+  const GITHUB_REPO_NAME = process.env.REPO_PUBLIC;
   const GITHUB_BRANCH = process.env.BRANCH;
-  const GITHUB_TARGET_FILE = process.env.KEY_FILE || 'bla.json';
+  const GITHUB_TARGET_FILE = process.env.KEY_FILE;
   const GITHUB_COMMIT_MESSAGE = `Create ${GITHUB_TARGET_FILE} for testing`;
 
   if (!GITHUB_PAT || !GITHUB_REPO_OWNER || !GITHUB_REPO_NAME || !GITHUB_BRANCH) {
