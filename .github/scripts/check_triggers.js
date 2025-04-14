@@ -9,11 +9,8 @@ async function loadFetch() {
 async function main() {
   const fetch = await loadFetch();
   const TRIGGER_CONFIG_FILE = 'trigger_config.json';
-  const TARGET_FILE = process.env.KEY_FILE || 'bla.json';
-  const REPO = process.env.REPO_PUPLIC;
-  const BRANCH = process.env.BRANCH;
 
-  console.log(`[DEBUG] Using repo: ${REPO}, branch: ${BRANCH}, file: ${TARGET_FILE}`);
+  console.log('[DEBUG] Starting trigger check...');
 
   let config;
   try {
@@ -31,7 +28,22 @@ async function main() {
   for (const [index, time] of config.triggerTimes.entries()) {
     if (time <= minutesSinceMidnight) {
       console.log(`[INFO] Trigger ${index} at minute ${time} activated`);
-      execSync(`node .github/scripts/create-file.js`, { stdio: 'inherit', env: process.env });
+      try {
+        execSync(`node .github/scripts/create-file.js`, { 
+          stdio: 'inherit', 
+          env: {
+            ...process.env,
+            PAT_PUSH: process.env.PAT_PUSH,
+            REPO_PUBLIC: process.env.REPO_PUBLIC,
+            USERNAME: process.env.USERNAME,
+            BRANCH: process.env.BRANCH,
+            KEY_FILE: process.env.KEY_FILE
+          }
+        });
+      } catch (err) {
+        console.error('[ERROR] Running create-file.js:', err);
+        process.exit(1);
+      }
 
       console.log('[INFO] Waiting 30 seconds...');
       await new Promise(resolve => setTimeout(resolve, 30000));
