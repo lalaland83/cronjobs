@@ -1,0 +1,33 @@
+name: Check Triggers
+
+on:
+  schedule:
+    - cron: '* * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-triggers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_PUSH }}
+          ref: ${{ secrets.BRANCH }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch
+
+      - name: Check triggers
+        env:
+          PAT_PUSH: ${{ secrets.PAT_PUSH }}
+          REPO_PUPLIC: ${{ secrets.REPO_PUPLIC }}
+          USERNAME: ${{ secrets.USERNAME }}
+          BRANCH: ${{ secrets.BRANCH }}
+          KEY_FILE: ${{ secrets.KEY_FILE }}
+        run: node .github/scripts/check_triggers.js
