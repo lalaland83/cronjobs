@@ -12,12 +12,22 @@ async function createFile() {
 
   const GITHUB_PAT = process.env.PAT_PUSH;
   const GITHUB_REPO_OWNER = process.env.USERNAME;
-  const GITHUB_REPO_NAME = process.env.REPO_PUBLIC;
+  const GITHUB_REPO_NAME = process.env.REPO_PUPLIC;
   const GITHUB_BRANCH = process.env.BRANCH;
   const GITHUB_TARGET_FILE = 'trigger_config.json';
   const GITHUB_COMMIT_MESSAGE = `Update ${GITHUB_TARGET_FILE} for ${new Date().toISOString().split('T')[0]}`;
 
+  if (!GITHUB_PAT || !GITHUB_REPO_OWNER || !GITHUB_REPO_NAME || !GITHUB_BRANCH) {
+    console.error('[ERROR] Missing environment variables:', {
+      pat: !!GITHUB_PAT,
+      owner: !!GITHUB_REPO_OWNER,
+      repo: !!GITHUB_REPO_NAME,
+      branch: !!GITHUB_BRANCH,
+    });
+    process.exit(1);
+  }
 
+  console.log('[DEBUG] API request to:', `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_TARGET_FILE}?ref=${GITHUB_BRANCH}`);
 
   const today = new Date().toISOString().split('T')[0];
   const triggerTimes = [];
