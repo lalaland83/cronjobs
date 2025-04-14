@@ -1,0 +1,31 @@
+name: Test File Creation
+
+on:
+  workflow_dispatch: # Manuelles Auslösen zum Testen
+
+jobs:
+  create-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_PUSH }}
+          ref: ${{ secrets.BRANCH }}
+
+      - name: Create and push file
+        env:
+          PAT_PUSH: ${{ secrets.PAT_PUSH }}
+          REPO: ${{ secrets.REPO }}
+          USERNAME: ${{ secrets.USERNAME }}
+          BRANCH: ${{ secrets.BRANCH }}
+          WORKFLOW_FILE: ${{ secrets.WORKFLOW_FILE }}
+        run: |
+          echo "WORKFLOW_FILE content: $WORKflow_FILE"
+          TARGET_FILE="${WORKFLOW_FILE:-bla.json}"
+          echo '{"ready": true}' > "$TARGET_FILE"
+          git config --global user.name "$USERNAME"
+          git config --global user.email "$USERNAME@users.noreply.github.com"
+          git add "$TARGET_FILE"
+          git commit -m "Create $TARGET_FILE for testing"
+          git push "https://$USERNAME:$PAT_PUSH@github.com/$USERNAME/$REPO.git" "HEAD:$BRANCH"
