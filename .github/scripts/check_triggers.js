@@ -18,7 +18,7 @@ async function main() {
     console.log('[INFO] Loaded config:', config);
   } catch (err) {
     console.error('[ERROR] Reading config:', err);
-    process.exit(1); // Erzwinge Log
+    return;
   }
 
   const now = new Date();
@@ -27,7 +27,11 @@ async function main() {
   console.log('[DEBUG] Minutes since midnight:', minutesSinceMidnight);
 
   for (const [index, time] of config.triggerTimes.entries()) {
-    if (time >= minutesSinceMidnight - 1 && time <= minutesSinceMidnight + 1) {
+    if (time >= minutesSinceMidnight && time < minutesSinceMidnight + 10) {
+      const delayMinutes = time - minutesSinceMidnight;
+      console.log(`[INFO] Trigger ${index} at minute ${time} scheduled, waiting ${delayMinutes} minutes`);
+      await new Promise(resolve => setTimeout(resolve, delayMinutes * 60000));
+
       console.log(`[INFO] Trigger ${index} at minute ${time} activated`);
       try {
         execSync(`node .github/scripts/create-file.js`, { 
@@ -59,7 +63,6 @@ async function main() {
     }
   }
   console.log('[INFO] No trigger activated');
-  process.exit(1); // Erzwinge Log-Sichtbarkeit
 }
 
 main().catch(err => {
