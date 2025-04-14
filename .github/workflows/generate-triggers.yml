@@ -2,8 +2,8 @@ name: Generate Triggers
 
 on:
   schedule:
-    - cron: '* * * * *' # Jede Minute
-  workflow_dispatch: # Manuelles Testen
+    - cron: '0 0 * * *' # Mitternacht
+  workflow_dispatch:
 
 jobs:
   generate-triggers:
