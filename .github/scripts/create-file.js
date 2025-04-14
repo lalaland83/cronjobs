@@ -1,8 +1,15 @@
 const fs = require('fs').promises;
 const path = require('path');
-const fetch = require('node-fetch').default; // Korrigierter Import
+
+async function loadFetch() {
+  const fetchModule = await import('node-fetch'); // Dynamischer ESM-Import
+  return fetchModule.default;
+}
 
 async function createFile() {
+  const fetch = await loadFetch(); // Fetch dynamisch laden
+  console.log('[DEBUG] Fetch function loaded:', typeof fetch); // Debugging
+
   const GITHUB_PAT = process.env.PAT_PUSH;
   const GITHUB_REPO_OWNER = process.env.USERNAME;
   const GITHUB_REPO_NAME = process.env.REPO;
