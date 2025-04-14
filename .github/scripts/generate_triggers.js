@@ -1,7 +1,6 @@
 const fs = require('fs').promises;
 const TRIGGER_COUNT = parseInt(process.env.TRIGGER_COUNT || '4');
 
-
 async function loadFetch() {
   const fetchModule = await import('node-fetch');
   return fetchModule.default;
@@ -78,28 +77,18 @@ async function main() {
   const REPO = process.env.REPO;
   const BRANCH = process.env.BRANCH;
 
-  // Aktuelle Zeit prüfen (Mitternachts-Check)
-  const now = new Date();
-  const minutesSinceMidnight = Math.floor((now - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 60000);
+  const today = new Date().toISOString().split('T')[0];
+  const config = {
+    date: today,
+    triggerTimes: Array.from({ length: TRIGGER_COUNT }, () => Math.floor(Math.random() * 1438) + 2).sort((a, b) => a - b),
+    executed: [],
+  };
 
-  // Nur bei Mitternacht (+2 Minuten Puffer) neue Trigger generieren
-  if (minutesSinceMidnight < 2) {
-    const today = now.toISOString().split('T')[0];
-    const config = {
-      date: today,
-      triggerTimes: Array.from({ length: TRIGGER_COUNT }, () => Math.floor(Math.random() * 1438) + 2).sort((a, b) => a - b), // +2 Minuten Puffer
-      executed: [],
-    };
+  const content = JSON.stringify(config, null, 2);
+  await fs.writeFile(TRIGGER_CONFIG_FILE, content);
+  console.log('[INFO] Generated new config:', config);
 
-    const content = JSON.stringify(config, null, 2);
-    await fs.writeFile(TRIGGER_CONFIG_FILE, content);
-    console.log('[INFO] Generated new config:', config);
-
-    // Config pushen
-    await commitFile(fetch, TRIGGER_CONFIG_FILE, content, PAT, OWNER, REPO, BRANCH, `Update ${TRIGGER_CONFIG_FILE} for ${today}`);
-  } else {
-    console.log('[INFO] Not midnight, skipping generation:', minutesSinceMidnight);
-  }
+  await commitFile(fetch, TRIGGER_CONFIG_FILE, content, PAT, OWNER, REPO, BRANCH, `Update ${TRIGGER_CONFIG_FILE} for ${today}`);
 }
 
 main().catch(err => {
