@@ -17,10 +17,7 @@ async function createFile() {
   const GITHUB_TARGET_FILE = 'trigger_config.json';
   const GITHUB_COMMIT_MESSAGE = `Update ${GITHUB_TARGET_FILE} for ${new Date().toISOString().split('T')[0]}`;
 
-  if (!GITHUB_PAT || !GITHUB_REPO_OWNER || !GITHUB_REPO_NAME || !GITHUB_BRANCH) {
-    console.error('[ERROR] Missing environment variables.');
-    process.exit(1);
-  }
+
 
   const today = new Date().toISOString().split('T')[0];
   const triggerTimes = [];
