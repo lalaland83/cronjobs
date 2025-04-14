@@ -1,4 +1,6 @@
 const fs = require('fs').promises;
+const TRIGGER_COUNT = parseInt(process.env.TRIGGER_COUNT || '4');
+
 
 async function loadFetch() {
   const fetchModule = await import('node-fetch');
@@ -70,7 +72,6 @@ async function commitFile(fetch, filePath, content, pat, owner, repo, branch, co
 
 async function main() {
   const fetch = await loadFetch();
-  const TRIGGER_COUNT = parseInt(process.env.TRIGGER_COUNT || '4');
   const TRIGGER_CONFIG_FILE = 'trigger_config.json';
   const PAT = process.env.PAT_PUSH;
   const OWNER = process.env.USERNAME;
