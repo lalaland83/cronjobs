@@ -74,14 +74,26 @@ async function main() {
   const TRIGGER_CONFIG_FILE = 'trigger_config.json';
   const PAT = process.env.PAT_PUSH;
   const OWNER = process.env.USERNAME;
-  const REPO = process.env.REPO;
+  const REPO = process.env.REPO_PUBLIC;
   const BRANCH = process.env.BRANCH;
 
   const today = new Date().toISOString().split('T')[0];
+  const triggerTimes = [];
+  const MIN_GAP = 10; // Mindestens 10 Minuten Abstand
+  const MAX_MINUTES = 1438; // 24h - 2 Minuten Puffer
+
+  // Generiere Trigger mit Abstand
+  while (triggerTimes.length < TRIGGER_COUNT) {
+    const time = Math.floor(Math.random() * (MAX_MINUTES - MIN_GAP * TRIGGER_COUNT)) + 2;
+    if (!triggerTimes.some(t => Math.abs(t - time) < MIN_GAP)) {
+      triggerTimes.push(time);
+    }
+  }
+  triggerTimes.sort((a, b) => a - b);
+
   const config = {
     date: today,
-    triggerTimes: Array.from({ length: TRIGGER_COUNT }, () => Math.floor(Math.random() * 1438) + 2).sort((a, b) => a - b),
-    executed: [],
+    triggerTimes,
   };
 
   const content = JSON.stringify(config, null, 2);
