@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const fetch = require('node-fetch');
+const fetch = require('node-fetch').default; // Korrigierter Import
 
 async function createFile() {
   const GITHUB_PAT = process.env.PAT_PUSH;
