@@ -12,6 +12,7 @@ jobs:
         with:
           token: ${{ secrets.PAT_PUSH }}
           ref: ${{ secrets.BRANCH }}
+          fetch-depth: 0 # Vollständige Historie für korrekten Pull
 
       - name: Create and push file
         env:
@@ -21,11 +22,13 @@ jobs:
           BRANCH: ${{ secrets.BRANCH }}
           WORKFLOW_FILE: ${{ secrets.WORKFLOW_FILE }}
         run: |
-          echo "WORKFLOW_FILE content: $WORKflow_FILE"
+          echo "WORKFLOW_FILE content: $WORKFLOW_FILE"
           TARGET_FILE="${WORKFLOW_FILE:-bla.json}"
           echo '{"ready": true}' > "$TARGET_FILE"
           git config --global user.name "$USERNAME"
           git config --global user.email "$USERNAME@users.noreply.github.com"
           git add "$TARGET_FILE"
           git commit -m "Create $TARGET_FILE for testing"
+          git fetch origin
+          git pull --rebase origin "$BRANCH"
           git push "https://$USERNAME:$PAT_PUSH@github.com/$USERNAME/$REPO.git" "HEAD:$BRANCH"
