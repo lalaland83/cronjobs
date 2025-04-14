@@ -22,12 +22,7 @@ jobs:
         run: npm install node-fetch
 
       - name: Create and push file via GitHub API
-        env:
-          PAT_PUSH: ${{ secrets.PAT_PUSH }}
-          REPO: ${{ secrets.REPO }}
-          USERNAME: ${{ secrets.USERNAME }}
-          BRANCH: ${{ secrets.BRANCH }}
-          KEY_FILE: ${{ secrets.KEY_FILE }}
+
         run: |
           echo "KEY_FILE content: $KEY_FILE"
           node .github/scripts/create-file.js
