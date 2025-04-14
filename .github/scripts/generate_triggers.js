@@ -6,16 +6,46 @@ async function loadFetch() {
   return fetchModule.default;
 }
 
-async function commitFile(fetch, filePath, content, pat, owner, repo, branch, commitMessage) {
-  const encodedContent = Buffer.from(content).toString('base64');
+async function createFile() {
+  const fetch = await loadFetch();
+  console.log('[DEBUG] Fetch function loaded:', typeof fetch);
+
+  const GITHUB_PAT = process.env.PAT_PUSH;
+  const GITHUB_REPO_OWNER = process.env.USERNAME;
+  const GITHUB_REPO_NAME = process.env.REPO_PUPLIC;
+  const GITHUB_BRANCH = process.env.BRANCH;
+  const GITHUB_TARGET_FILE = 'trigger_config.json';
+  const GITHUB_COMMIT_MESSAGE = `Update ${GITHUB_TARGET_FILE} for ${new Date().toISOString().split('T')[0]}`;
+
+  if (!GITHUB_PAT || !GITHUB_REPO_OWNER || !GITHUB_REPO_NAME || !GITHUB_BRANCH) {
+    console.error('[ERROR] Missing environment variables.');
+    process.exit(1);
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const triggerTimes = [];
+  const MIN_GAP = 10;
+  const MAX_MINUTES = 1438;
+
+  while (triggerTimes.length < TRIGGER_COUNT) {
+    const time = Math.floor(Math.random() * (MAX_MINUTES - MIN_GAP * TRIGGER_COUNT)) + 2;
+    if (!triggerTimes.some(t => Math.abs(t - time) < MIN_GAP)) {
+      triggerTimes.push(time);
+    }
+  }
+  triggerTimes.sort((a, b) => a - b);
+
+  const config = { date: today, triggerTimes };
+  const contentData = JSON.stringify(config, null, 2);
+  const encodedContent = Buffer.from(contentData).toString('base64');
   let fileSha = null;
 
   try {
     const getRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`,
+      `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_TARGET_FILE}?ref=${GITHUB_BRANCH}`,
       {
         headers: {
-          Authorization: `Bearer ${pat}`,
+          Authorization: `Bearer ${GITHUB_PAT}`,
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
         },
@@ -29,28 +59,29 @@ async function commitFile(fetch, filePath, content, pat, owner, repo, branch, co
     } else if (getRes.status === 404) {
       console.log('[INFO] File does not exist. Will create new.');
     } else {
-      throw new Error(`Fetching existing file failed: ${getRes.statusText}`);
+      console.error('[ERROR] Fetching existing file failed:', getRes.statusText);
+      process.exit(1);
     }
   } catch (err) {
-    console.error('[ERROR] Fetching existing file:', err);
+    console.error('[ERROR] Fetching existing file failed:', err);
     process.exit(1);
   }
 
   try {
     const putRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+      `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_TARGET_FILE}`,
       {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${pat}`,
+          Authorization: `Bearer ${GITHUB_PAT}`,
           'Content-Type': 'application/json',
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
         },
         body: JSON.stringify({
-          message: commitMessage,
+          message: GITHUB_COMMIT_MESSAGE,
           content: encodedContent,
-          branch,
+          branch: GITHUB_BRANCH,
           sha: fileSha || undefined,
         }),
       }
@@ -69,40 +100,7 @@ async function commitFile(fetch, filePath, content, pat, owner, repo, branch, co
   }
 }
 
-async function main() {
-  const fetch = await loadFetch();
-  const TRIGGER_CONFIG_FILE = 'trigger_config.json';
-  const PAT = process.env.PAT_PUSH;
-  const OWNER = process.env.USERNAME;
-  const REPO = process.env.REPO_PUPLIC;
-  const BRANCH = process.env.BRANCH;
-
-  const today = new Date().toISOString().split('T')[0];
-  const triggerTimes = [];
-  const MIN_GAP = 10;
-  const MAX_MINUTES = 1438;
-
-  while (triggerTimes.length < TRIGGER_COUNT) {
-    const time = Math.floor(Math.random() * (MAX_MINUTES - MIN_GAP * TRIGGER_COUNT)) + 2;
-    if (!triggerTimes.some(t => Math.abs(t - time) < MIN_GAP)) {
-      triggerTimes.push(time);
-    }
-  }
-  triggerTimes.sort((a, b) => a - b);
-
-  const config = {
-    date: today,
-    triggerTimes,
-  };
-
-  const content = JSON.stringify(config, null, 2);
-  await fs.writeFile(TRIGGER_CONFIG_FILE, content);
-  console.log('[INFO] Generated new config:', config);
-
-  await commitFile(fetch, TRIGGER_CONFIG_FILE, content, PAT, OWNER, REPO, BRANCH, `Update ${TRIGGER_CONFIG_FILE} for ${today}`);
-}
-
-main().catch(err => {
+createFile().catch(err => {
   console.error('[ERROR] Script failed:', err);
   process.exit(1);
 });
