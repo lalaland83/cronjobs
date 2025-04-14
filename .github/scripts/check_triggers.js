@@ -10,7 +10,7 @@ async function main() {
   const fetch = await loadFetch();
   const TRIGGER_CONFIG_FILE = 'trigger_config.json';
 
-  console.log('[DEBUG] Starting trigger check...');
+  console.log('[DEBUG] Starting trigger check at:', new Date().toISOString());
 
   let config;
   try {
@@ -24,6 +24,7 @@ async function main() {
   const now = new Date();
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const minutesSinceMidnight = Math.floor((now - midnight) / 60000);
+  console.log('[DEBUG] Minutes since midnight:', minutesSinceMidnight);
 
   for (const [index, time] of config.triggerTimes.entries()) {
     if (time <= minutesSinceMidnight) {
