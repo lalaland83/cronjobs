@@ -31,8 +31,8 @@ async function createFile() {
 
   const today = new Date().toISOString().split('T')[0];
   const triggerTimes = [];
-  const MIN_GAP = 10;
-  const MAX_MINUTES = 1438;
+  const MIN_GAP = 60;
+  const MAX_MINUTES = 1400;
 
   while (triggerTimes.length < TRIGGER_COUNT) {
     const time = Math.floor(Math.random() * (MAX_MINUTES - MIN_GAP * TRIGGER_COUNT)) + 2;
