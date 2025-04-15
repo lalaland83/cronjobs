@@ -27,7 +27,7 @@ async function main() {
   console.log('[DEBUG] Minutes since midnight:', minutesSinceMidnight);
 
   for (const [index, time] of config.triggerTimes.entries()) {
-    if (time >= minutesSinceMidnight && time < minutesSinceMidnight + 10) {
+    if (time >= minutesSinceMidnight && time < minutesSinceMidnight + 30) {
       const delayMinutes = time - minutesSinceMidnight;
       console.log(`[INFO] Trigger ${index} at minute ${time} scheduled, waiting ${delayMinutes} minutes`);
       await new Promise(resolve => setTimeout(resolve, delayMinutes * 60000));
