@@ -1,7 +1,7 @@
 name: Generate Triggers
 
 on:
-  schedule:
+#  schedule:
  #   - cron: '0 0 * * *' # Mitternacht
   workflow_dispatch:
 
